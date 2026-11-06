@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trái Tim Nhịp Đập ❤️ Beat of Love</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body data-theme="ruby">
+  <!-- Canvas nền hạt bay và hiệu ứng tia sáng -->
+  <canvas id="particleCanvas"></canvas>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="bpm-badge">
+        <span class="pulse-dot"></span>
+        <span id="bpmValueDisplay">75</span> BPM
+      </div>
+      <h1 class="subtitle">Lắng nghe nhịp đập con tim</h1>
+    </header>
+
+    <!-- Khu vực trái tim trung tâm -->
+    <main class="heart-section">
+      <!-- Sóng điện tim ECG chạy ngang -->
+      <div class="ecg-container">
+        <canvas id="ecgCanvas"></canvas>
+      </div>
+
+      <!-- Vòng sóng xung kích lan toả -->
+      <div class="pulse-ripple ripple-1"></div>
+      <div class="pulse-ripple ripple-2"></div>
+      <div class="pulse-ripple ripple-3"></div>
+
+      <!-- Trái tim SVG phát sáng với nhịp đập -->
+      <div class="heart-wrapper" id="heartWrapper" title="Nhấp vào để gửi yêu thương!">
+        <svg class="heart-svg" id="heartSvg" viewBox="0 0 24 24">
+          <defs>
+            <!-- Gradient màu trái tim -->
+            <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--gradient-start)" />
+              <stop offset="50%" stop-color="var(--gradient-mid)" />
+              <stop offset="100%" stop-color="var(--gradient-end)" />
+            </linearGradient>
+
+            <!-- Vùng sáng bóng 3D -->
+            <radialGradient id="heartHighlight" cx="35%" cy="30%" r="45%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.75)" />
+              <stop offset="60%" stop-color="rgba(255,255,255,0.15)" />
+              <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+            </radialGradient>
+
+            <!-- Bộ lọc phát sáng neon -->
+            <filter id="neonGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="1.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- Hình bóng mờ phát sáng phía sau -->
+          <path class="heart-shadow" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 .81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+
+          <!-- Hình trái tim chính -->
+          <path class="heart-body" filter="url(#neonGlow)" fill="url(#heartGradient)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 .81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+
+          <!-- Lớp sáng bóng gương cong cong phía trên bên trái -->
+          <path class="heart-shine" fill="url(#heartHighlight)" d="M7.5 4.5 C5.8 4.5 4.5 5.8 4.5 7.5 C4.5 9.2 5.5 11 7 12.2 C6.2 10.8 5.8 9.5 5.8 8.2 C5.8 6.5 6.5 5.5 7.5 4.5 Z" />
+        </svg>
+
+        <div class="touch-hint">Chạm vào tôi ❤️</div>
+      </div>
+
+      <!-- Dòng chữ tâm tư có thể nhấn để sửa -->
+      <div class="message-container">
+        <p class="love-message" id="loveMessage" contenteditable="true" spellcheck="false" title="Bấm vào để đổi lời nhắn">
+          Từng nhịp đập... chỉ vì có em ❤️
+        </p>
+        <span class="edit-tip">✏️ Nhấn vào chữ để đổi lời nhắn</span>
+      </div>
+    </main>
+
+    <!-- Bảng điều khiển tương tác (Glassmorphism) -->
+    <footer class="controls-panel">
+      <!-- Bật/Tắt âm thanh nhịp đập -->
+      <div class="control-item">
+        <button id="soundToggleBtn" class="glass-btn" title="Bật/Tắt âm thanh nhịp tim">
+          <span class="btn-icon">🔊</span>
+          <span id="soundStatusText">Bật âm thanh</span>
+        </button>
+      </div>
+
+      <!-- Thanh trượt điều chỉnh nhịp tim (BPM) -->
+      <div class="control-item slider-group">
+        <label for="bpmSlider">
+          <span>Tốc độ nhịp đập:</span>
+          <strong id="bpmSliderVal">75</strong> <small>BPM</small>
+        </label>
+        <div class="slider-wrapper">
+          <span class="slider-label">Chậm</span>
+          <input type="range" id="bpmSlider" min="45" max="150" value="75" step="1">
+          <span class="slider-label">Rộn ràng</span>
+        </div>
+      </div>
+
+      <!-- Đổi màu chủ đạo -->
+      <div class="control-item theme-group">
+        <span class="theme-label">Sắc màu:</span>
+        <div class="theme-buttons">
+          <button class="theme-btn active" data-theme-name="ruby" title="Đỏ Ruby" style="background: linear-gradient(135deg, #ff1744, #d50000);"></button>
+          <button class="theme-btn" data-theme-name="rose" title="Hồng Tình Yêu" style="background: linear-gradient(135deg, #ff4081, #c2185b);"></button>
+          <button class="theme-btn" data-theme-name="violet" title="Tím Chung Thuỷ" style="background: linear-gradient(135deg, #b388ff, #7c4dff);"></button>
+          <button class="theme-btn" data-theme-name="cyber" title="Lam Ánh Trăng" style="background: linear-gradient(135deg, #00e5ff, #0091ea);"></button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
